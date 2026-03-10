@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhotoShare — Creator Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sky: #0ea5e9;
+      --navy: #0f172a;
+      --mid: #1e3a5f;
+      --violet: #7c3aed;
+      --emerald: #059669;
+      --amber: #d97706;
+      --light: #f1f5f9;
+      --muted: #64748b;
+      --white: #ffffff;
+      --card-shadow: 0 2px 12px rgba(0,0,0,0.10);
+    }
+
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--light); color: var(--navy); min-height: 100vh; }
+
+    nav {
+      background: var(--navy);
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 58px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .nav-brand { display: flex; align-items: center; gap: 0.5rem; color: var(--white); font-size: 1.25rem; font-weight: 700; text-decoration: none; }
+    .nav-brand span { color: var(--sky); }
+    .nav-badge { background: var(--violet); color: var(--white); font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 99px; font-weight: 700; margin-left: 0.25rem; }
+    .nav-right { display: flex; align-items: center; gap: 0.75rem; }
+    .nav-user { color: #94a3b8; font-size: 0.875rem; }
+
+    .btn { padding: 0.45rem 1rem; border-radius: 6px; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: opacity 0.15s; }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: var(--sky); color: var(--white); }
+    .btn-violet { background: var(--violet); color: var(--white); }
+    .btn-outline { background: transparent; border: 1.5px solid #475569; color: #cbd5e1; }
+    .btn-danger { background: #dc2626; color: var(--white); }
+    .btn-sm { padding: 0.3rem 0.7rem; font-size: 0.8rem; }
+
+    /* Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 1.5rem;
+      max-width: 1200px;
+      margin: 1.5rem auto;
+      padding: 0 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    /* Upload panel */
+    .panel {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: var(--card-shadow);
+      height: fit-content;
+    }
+
+    .panel-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .drop-zone {
+      border: 2px dashed #cbd5e1;
+      border-radius: 8px;
+      padding: 2rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 1rem;
+    }
+    .drop-zone:hover, .drop-zone.dragging { border-color: var(--sky); background: #eff6ff; }
+    .drop-zone .icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .drop-zone p { color: var(--muted); font-size: 0.9rem; }
+    .drop-zone input[type=file] { display: none; }
+
+    .preview-img {
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .form-group { margin-bottom: 0.85rem; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; color: var(--navy); }
+    .form-group input, .form-group textarea {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      font-size: 0.9rem;
+      outline: none;
+      font-family: inherit;
+      resize: vertical;
+    }
+    .form-group input:focus, .form-group textarea:focus { border-color: var(--sky); }
+
+    .msg { font-size: 0.85rem; margin-top: 0.5rem; padding: 0.5rem 0.75rem; border-radius: 6px; }
+    .msg.error { background: #fef2f2; color: #dc2626; }
+    .msg.success { background: #f0fdf4; color: #16a34a; }
+
+    .progress-bar-wrap {
+      background: #e2e8f0;
+      border-radius: 99px;
+      height: 6px;
+      margin: 0.75rem 0;
+      display: none;
+    }
+    .progress-bar {
+      background: var(--sky);
+      height: 6px;
+      border-radius: 99px;
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    /* My uploads grid */
+    .uploads-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .uploads-title { font-size: 1.1rem; font-weight: 700; }
+
+    .uploads-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+
+    .upload-card {
+      background: var(--white);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+    }
+
+    .upload-card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .upload-card-body { padding: 0.75rem 0.85rem; }
+    .upload-card-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .upload-card-meta { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.5rem; }
+    .upload-card-tags { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-bottom: 0.5rem; }
+    .tag { background: #eff6ff; color: var(--sky); border-radius: 99px; padding: 0.12rem 0.55rem; font-size: 0.7rem; font-weight: 500; }
+    .upload-card-stats { display: flex; gap: 0.75rem; font-size: 0.78rem; color: var(--muted); }
+
+    .ai-badge {
+      background: #ede9fe;
+      color: var(--violet);
+      border-radius: 6px;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.78rem;
+      margin-bottom: 0.5rem;
+      font-style: italic;
+    }
+
+    .empty-state { text-align: center; padding: 3rem; color: var(--muted); }
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+
+    .loading-spinner {
+      text-align: center;
+      padding: 2rem;
+      color: var(--muted);
+    }
+
+    /* Login gate */
+    .login-gate {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      text-align: center;
+      gap: 1rem;
+    }
+    .login-gate .icon { font-size: 3rem; }
+    .login-gate h2 { font-size: 1.4rem; }
+    .login-gate p { color: var(--muted); }
+
+    .login-form {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: var(--card-shadow);
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="/">📷 Photo<span>Share</span><span class="nav-badge">CREATOR</span></a>
+  <div class="nav-right">
+    <span class="nav-user" id="navUser"></span>
+    <a href="/" class="btn btn-outline btn-sm">Consumer View</a>
+    <button class="btn btn-danger btn-sm" id="btnLogout" onclick="logout()">Sign Out</button>
+  </div>
+</nav>
+
+<!-- LOGIN GATE (shown when not authenticated as creator) -->
+<div id="loginGate" style="display:none; padding: 2rem;">
+  <div class="login-form">
+    <div style="text-align:center;margin-bottom:1.25rem">
+      <div style="font-size:2.5rem">🎨</div>
+      <h2 style="margin-bottom:0.25rem">Creator Login</h2>
+      <p style="color:var(--muted);font-size:0.875rem">Sign in with your creator account</p>
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="creator@photoshare.dev" />
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()" />
+    </div>
+    <div id="loginMsg"></div>
+    <button class="btn btn-violet" style="width:100%;margin-top:0.5rem" onclick="doLogin()">Sign In as Creator</button>
+  </div>
+</div>
+
+<!-- MAIN DASHBOARD (shown when authenticated) -->
+<div id="dashboard" style="display:none">
+  <div class="layout">
+
+    <!-- Upload Panel -->
+    <div>
+      <div class="panel">
+        <div class="panel-title">📤 Upload New Photo</div>
+
+        <!-- Drop zone -->
+        <div class="drop-zone" id="dropZone"
+             onclick="document.getElementById('fileInput').click()"
+             ondragover="handleDragOver(event)"
+             ondragleave="handleDragLeave(event)"
+             ondrop="handleDrop(event)">
+          <div class="icon">📁</div>
+          <p>Click to choose or drag & drop a photo</p>
+          <p style="font-size:0.78rem;margin-top:0.25rem">JPG, PNG, WEBP · Max 5 MB</p>
+          <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)" />
+        </div>
+        <img id="previewImg" class="preview-img" alt="Preview" />
+
+        <div class="form-group">
+          <label>Title <span style="color:#dc2626">*</span></label>
+          <input type="text" id="uploadTitle" placeholder="e.g. Sunset over Snowdonia" />
+        </div>
+        <div class="form-group">
+          <label>Caption</label>
+          <textarea id="uploadCaption" rows="2" placeholder="Describe your photo…"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Location</label>
+          <input type="text" id="uploadLocation" placeholder="e.g. Snowdonia, Wales" />
+        </div>
+        <div class="form-group">
+          <label>Tag People <span style="color:var(--muted);font-weight:400">(comma-separated)</span></label>
+          <input type="text" id="uploadPeople" placeholder="Alice, Bob" />
+        </div>
+
+        <div class="progress-bar-wrap" id="progressWrap">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div id="uploadMsg"></div>
+
+        <button class="btn btn-violet" style="width:100%;margin-top:0.75rem" onclick="uploadPhoto()" id="btnUpload">
+          🚀 Upload Photo
+        </button>
+      </div>
+    </div>
+
+    <!-- My Uploads -->
+    <div>
+      <div class="uploads-header">
+        <div class="uploads-title">📷 My Uploads</div>
+        <button class="btn btn-outline btn-sm" onclick="loadMyPhotos()">↻ Refresh</button>
+      </div>
+      <div id="loadingUploads" class="loading-spinner">Loading your photos…</div>
+      <div class="uploads-grid" id="uploadsGrid"></div>
+      <div id="uploadsEmpty" class="empty-state" style="display:none">
+        <div class="icon">📷</div>
+        <p>No uploads yet. Upload your first photo!</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="creator.js"></script>
+</body>
+</html>

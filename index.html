@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhotoShare</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sky: #0ea5e9;
+      --navy: #0f172a;
+      --mid: #1e3a5f;
+      --violet: #7c3aed;
+      --emerald: #059669;
+      --amber: #d97706;
+      --light: #f1f5f9;
+      --muted: #64748b;
+      --white: #ffffff;
+      --card-shadow: 0 2px 12px rgba(0,0,0,0.10);
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--light);
+      color: var(--navy);
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: var(--navy);
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 58px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--white);
+      font-size: 1.25rem;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .nav-brand span { color: var(--sky); }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .nav-user {
+      color: #94a3b8;
+      font-size: 0.875rem;
+    }
+
+    .btn {
+      padding: 0.45rem 1rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: var(--sky); color: var(--white); }
+    .btn-outline { background: transparent; border: 1.5px solid #475569; color: #cbd5e1; }
+    .btn-danger  { background: #dc2626; color: var(--white); }
+    .btn-sm { padding: 0.3rem 0.7rem; font-size: 0.8rem; }
+
+    /* ── SEARCH BAR ── */
+    .search-bar {
+      background: var(--mid);
+      padding: 1rem 1.5rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-bar input {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: var(--white);
+      font-size: 0.95rem;
+      outline: none;
+    }
+    .search-bar input::placeholder { color: #64748b; }
+    .search-bar input:focus { border-color: var(--sky); }
+
+    /* ── MAIN GRID ── */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+
+    /* ── PHOTO CARD ── */
+    .photo-card {
+      background: var(--white);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .photo-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+    }
+
+    .photo-card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .photo-card-body {
+      padding: 0.85rem 1rem;
+    }
+
+    .photo-card-title {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--navy);
+      margin-bottom: 0.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .photo-card-meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .photo-card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .tag {
+      background: #eff6ff;
+      color: var(--sky);
+      border-radius: 99px;
+      padding: 0.15rem 0.6rem;
+      font-size: 0.72rem;
+      font-weight: 500;
+    }
+
+    .photo-card-stats {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .stat { display: flex; align-items: center; gap: 0.25rem; }
+
+    /* ── DETAIL MODAL ── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 200;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+    .overlay.open { display: flex; align-items: flex-start; justify-content: center; }
+
+    .modal {
+      background: var(--white);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 780px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    .modal img {
+      width: 100%;
+      max-height: 420px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .modal-body { padding: 1.25rem 1.5rem; }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.75rem;
+    }
+
+    .modal-title { font-size: 1.4rem; font-weight: 700; }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--muted);
+      line-height: 1;
+    }
+    .modal-close:hover { color: var(--navy); }
+
+    .modal-caption { color: #475569; margin-bottom: 0.75rem; line-height: 1.5; }
+
+    .modal-meta {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .ai-caption {
+      background: #eff6ff;
+      border-left: 3px solid var(--sky);
+      padding: 0.5rem 0.75rem;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.875rem;
+      color: #1e40af;
+      margin-bottom: 1rem;
+      font-style: italic;
+    }
+
+    /* ── RATING STARS ── */
+    .star-rating {
+      display: flex;
+      gap: 0.35rem;
+      margin-bottom: 1rem;
+      align-items: center;
+    }
+
+    .star {
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #cbd5e1;
+      transition: color 0.15s;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+    .star.active, .star:hover { color: #f59e0b; }
+    .star-count { font-size: 0.85rem; color: var(--muted); margin-left: 0.5rem; }
+
+    /* ── COMMENTS ── */
+    .comments-section { border-top: 1px solid #e2e8f0; padding-top: 1rem; }
+    .comments-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.75rem; }
+
+    .comment {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .comment-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--sky);
+      color: var(--white);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .comment-bubble {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      flex: 1;
+    }
+
+    .comment-name { font-weight: 600; font-size: 0.85rem; }
+    .comment-text { font-size: 0.9rem; color: #334155; margin-top: 0.2rem; }
+    .comment-time { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
+
+    .comment-form {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .comment-form input {
+      flex: 1;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .comment-form input:focus { border-color: var(--sky); }
+
+    /* ── AUTH MODAL ── */
+    .auth-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+    }
+    .auth-overlay.open { display: flex; }
+
+    .auth-modal {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    .auth-modal h2 { margin-bottom: 0.25rem; }
+    .auth-modal p { color: var(--muted); font-size: 0.875rem; margin-bottom: 1.25rem; }
+
+    .form-group { margin-bottom: 0.85rem; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; }
+    .form-group input {
+      width: 100%;
+      padding: 0.55rem 0.8rem;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      font-size: 0.95rem;
+      outline: none;
+    }
+    .form-group input:focus { border-color: var(--sky); }
+
+    .auth-toggle { font-size: 0.85rem; text-align: center; margin-top: 1rem; }
+    .auth-toggle a { color: var(--sky); cursor: pointer; text-decoration: underline; }
+
+    .msg { font-size: 0.85rem; margin-top: 0.5rem; padding: 0.5rem 0.75rem; border-radius: 6px; }
+    .msg.error { background: #fef2f2; color: #dc2626; }
+    .msg.success { background: #f0fdf4; color: #16a34a; }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--muted);
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+
+    .loading { text-align: center; padding: 2rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <a class="nav-brand" href="/">📷 Photo<span>Share</span></a>
+  <div class="nav-right">
+    <span class="nav-user" id="navUser"></span>
+    <button class="btn btn-outline btn-sm" id="btnAuth" onclick="openAuth()">Sign In</button>
+    <button class="btn btn-danger btn-sm" id="btnLogout" style="display:none" onclick="logout()">Sign Out</button>
+  </div>
+</nav>
+
+<!-- ── SEARCH ── -->
+<div class="search-bar">
+  <input type="text" id="searchInput" placeholder="Search photos by title, caption or tag…" />
+  <button class="btn btn-primary" onclick="doSearch()">Search</button>
+  <button class="btn btn-outline" onclick="clearSearch()">Clear</button>
+</div>
+
+<!-- ── FEED ── -->
+<main>
+  <p class="section-title" id="feedLabel">All Photos</p>
+  <div id="loading" class="loading">Loading…</div>
+  <div class="photo-grid" id="photoGrid"></div>
+  <div id="emptyState" class="empty-state" style="display:none">
+    <div class="icon">📷</div>
+    <p>No photos found. Try a different search.</p>
+  </div>
+  <div style="text-align:center;margin-top:1.5rem">
+    <button class="btn btn-outline" id="btnLoadMore" style="display:none" onclick="loadMore()">Load more</button>
+  </div>
+</main>
+
+<!-- ── DETAIL MODAL ── -->
+<div class="overlay" id="detailOverlay" onclick="closeDetail(event)">
+  <div class="modal" id="detailModal">
+    <img id="detailImg" src="" alt="" />
+    <div class="modal-body">
+      <div class="modal-header">
+        <div class="modal-title" id="detailTitle"></div>
+        <button class="modal-close" onclick="closeDetailBtn()">✕</button>
+      </div>
+      <p class="modal-caption" id="detailCaption"></p>
+      <div class="modal-meta" id="detailMeta"></div>
+      <div class="ai-caption" id="detailAiCaption" style="display:none"></div>
+      <div class="photo-card-tags" id="detailTags"></div>
+
+      <!-- Rating -->
+      <div class="star-rating" id="starRating">
+        <button class="star" data-val="1" onclick="rate(1)">★</button>
+        <button class="star" data-val="2" onclick="rate(2)">★</button>
+        <button class="star" data-val="3" onclick="rate(3)">★</button>
+        <button class="star" data-val="4" onclick="rate(4)">★</button>
+        <button class="star" data-val="5" onclick="rate(5)">★</button>
+        <span class="star-count" id="starCount"></span>
+      </div>
+
+      <!-- Comments -->
+      <div class="comments-section">
+        <p class="comments-title">Comments</p>
+        <div id="commentsList"></div>
+        <div class="comment-form" id="commentForm">
+          <input type="text" id="commentInput" placeholder="Add a comment…" onkeydown="if(event.key==='Enter') postComment()" />
+          <button class="btn btn-primary btn-sm" onclick="postComment()">Post</button>
+        </div>
+        <p id="commentLoginMsg" style="font-size:0.8rem;color:var(--muted);display:none">
+          <a href="#" onclick="openAuth()" style="color:var(--sky)">Sign in</a> to comment or rate.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── AUTH MODAL ── -->
+<div class="auth-overlay" id="authOverlay" onclick="closeAuthOverlay(event)">
+  <div class="auth-modal">
+    <h2 id="authTitle">Sign In</h2>
+    <p id="authSubtitle">Welcome back to PhotoShare</p>
+    <div class="form-group" id="nameGroup" style="display:none">
+      <label>Display Name</label>
+      <input type="text" id="authName" placeholder="Your name" />
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="authEmail" placeholder="you@example.com" />
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="authPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter') submitAuth()" />
+    </div>
+    <div id="authMsg"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:0.5rem" onclick="submitAuth()" id="authSubmit">Sign In</button>
+    <div class="auth-toggle">
+      <span id="authToggleText">Don't have an account? </span>
+      <a onclick="toggleAuth()">Register</a>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
