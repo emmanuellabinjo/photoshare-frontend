@@ -1,5 +1,5 @@
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
-const API_BASE = "https://photoshare-api.azurewebsites.net/api";
+const API_BASE = "https://photoshare-api.thankfulocean-8f670a50.eastus.azurecontainerapps.io";
 // Change above URL to your actual App Service URL before deploying.
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
