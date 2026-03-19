@@ -1,13 +1,17 @@
 {
   "routes": [
     {
-      "route": "/creator*",
+      "route": "/creator.html",
       "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/creator",
+      "rewrite": "/creator.html"
     }
   ],
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/api/*", "/*.{css,js,png,jpg,gif,ico,svg,woff,woff2}"]
+    "exclude": ["/api/*", "/*.{css,js,png,jpg,gif,ico,svg,woff,woff2,json}"]
   },
   "globalHeaders": {
     "Cache-Control": "no-store",
