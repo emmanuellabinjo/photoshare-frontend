@@ -77,7 +77,7 @@ function toggleAuth() {
   document.getElementById("authToggleText").textContent = isReg
     ? "Already have an account? "
     : "New to PhotoShare? ";
-  document.getElementById("authMsg").innerHTML = "";
+  document.getElementById("authToggleLink").textContent = isReg ? "Sign In" : "Sign Up";
 }
 
 async function submitAuth() {
