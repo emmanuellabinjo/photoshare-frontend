@@ -31,19 +31,21 @@ let isAuthMode = "login"; // "login" | "register"
 function updateNavAuth() {
   const btnAuth = document.getElementById("btnAuth");
   const btnLogout = document.getElementById("btnLogout");
+  const btnCreatorDash = document.getElementById("btnCreatorDash");
   const navUser = document.getElementById("navUser");
 
   if (currentUser) {
     btnAuth.style.display = "none";
     btnLogout.style.display = "";
     navUser.textContent = `👤 ${currentUser.displayName}`;
+    btnCreatorDash.style.display = currentUser.role === "creator" ? "" : "none";
   } else {
     btnAuth.style.display = "";
     btnLogout.style.display = "none";
+    btnCreatorDash.style.display = "none";
     navUser.textContent = "";
   }
 }
-
 function logout() {
   currentUser = null;
   currentToken = null;
