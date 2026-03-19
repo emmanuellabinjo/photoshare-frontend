@@ -76,7 +76,7 @@ function toggleAuth() {
   document.getElementById("authSubmit").textContent = isReg ? "Register" : "Sign In";
   document.getElementById("authToggleText").textContent = isReg
     ? "Already have an account? "
-    : "Don't have an account? ";
+    : "New to PhotoShare? ";
   document.getElementById("authMsg").innerHTML = "";
 }
 
